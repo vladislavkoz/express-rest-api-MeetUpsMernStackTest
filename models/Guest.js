@@ -7,11 +7,36 @@ const GuestSchema = new mongoose.Schema({
     email: {type: String, required: true},
     skills:[
       {
-        _id: {type: ObjectId},
         name:{type: String}
       }
     ]
 });
+
+GuestSchema.statics.addNewSkillById = function(id,skill) {
+ return  this.findOneAndUpdate(
+    {_id: id},
+    {$push: {skills:{name:skill}}}
+    ,{new:true});
+}
+
+GuestSchema.statics.removeSkillById = function(id,skillId) {
+  return  Guest.findByIdAndUpdate(id,
+    {$pull: {'skills':{_id:skillId}}},
+    {new:true});
+ }
+
+ GuestSchema.statics.updateSkillById = function(id,skillId,newSkill) {
+console.log(id)
+console.log(skillId)
+console.log(newSkill)
+
+  return  Guest.findOneAndUpdate(
+    {_id:id,
+        'skills._id':skillId},
+        { $set: {'skills.$.name':newSkill}},
+        {new:true});
+ }
+
 
 const Guest = mongoose.model('Guest', GuestSchema, 'guests');
 

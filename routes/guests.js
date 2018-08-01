@@ -32,10 +32,10 @@ router.post("/login", (req, res) => {
     if (!isValid) {
         return res.status(400).json(errors)
     }
-
+    
     const email = req.body.email;
     const password = req.body.password;
-
+console.log(email)
     Guest.findOne({email})
         .then(user => {
             if (!user) {
@@ -50,7 +50,6 @@ router.post("/login", (req, res) => {
                                 id: user._id,
                                 email: user.email
                             };
-
                             ////Sign Token
                             jwt.sign(
                                 payload,
@@ -104,25 +103,49 @@ router.post('/registration', function (req, res) {
         )
 });
 
-router.post('/guests', function (req, res) {
+
+router.post('/guests/skills', (req,res) => {
+     Guest.addNewSkillById(req.body.id,req.body.skill)
+     .then(model => { res.json(model)})
+         .catch(err => res.json(err))
+    }
+)
+
+router.delete('/guests/skills',(req,res)=>{
+    Guest.removeSkillById(req.body.id,req.body.skillId)
+    .then(model => res.json(model))
+    .catch(err => res.json>(err))
+    }
+)
+
+
+
+router.patch('/guests/skills',(req,res)=>{
+        Guest.updateSkillById(req.body.id,req.body.skillId,req.body.skill)
+        .then(model => res.json(model))
+        .catch(err => res.json(err))
+    }
+)
+
+router.post('/guests', (req, res) => {
     Guest.create(req.body)
         .then(m => res.json(m))
         .catch(err => res.status(500).json({error: err}))
 });
 
-router.get('/guests/:id', function (req, res) {
+router.get('/guests/:id', (req, res)=>  {
     Guest.findById(req.params.id)
         .then(m => res.json(m))
         .catch(err => res.status(500).json({error: err}))
 });
 
-router.delete('/guests/:id', function (req, res) {
+router.delete('/guests/:id', (req, res)=>  {
     Guest.findByIdAndRemove(req.params.id)
         .then(m => res.status(204).json('OK'))
         .catch(err => res.status(500).json({error: err}))
 });
 
-router.patch('/guests/:id', function (req, res) {
+router.patch('/guests/:id', (req, res)=>  {
     Guest.findByIdAndUpdate(req.params.id, req.body, {new: true})
         .then(m => res.json(m))
         .catch(err => res.status(500).json({error: err}))
