@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const jwt  = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
 const passport = require('passport');
 const validateRegisterInput = require('../validation/register');
@@ -17,62 +17,63 @@ router.get('/guests', function (req, res) {
 
 router.get('/current',
     passport.authenticate('jwt', {session: false}),
-    (req,res) => {
-    res.json(
-        {
-            id: req.user.id,
-            email: req.user.email
-        }
-    )
+    (req, res) => {
+        res.json(
+            {
+                id: req.user.id,
+                email: req.user.email
+            }
+        )
+    });
 
-});
-
-router.post("/login", (req,res) => {
+router.post("/login", (req, res) => {
 
     const {errors, isValid} = validateLoginInput(req.body);
-    if(!isValid){
+    if (!isValid) {
         return res.status(400).json(errors)
     }
-    
+
     const email = req.body.email;
     const password = req.body.password;
 
     Guest.findOne({email})
-        .then(user =>{
-            if (!user){
+        .then(user => {
+            if (!user) {
                 errors.email = 'User not found'
                 return res.status(404).json(errors)
-            }else{
-                bcrypt.compare(password,user.password)
+            } else {
+                bcrypt.compare(password, user.password)
                     .then(isMatch => {
                         if (isMatch) {
                             //User Mathced
                             const payload = {
                                 id: user._id,
-                                email: user.email };
+                                email: user.email
+                            };
 
                             ////Sign Token
                             jwt.sign(
                                 payload,
                                 keys.SecretOrKey,
-                                {expiresIn: 3600}, (err,token) =>{
-                                res.json({
-                                    success: true,
-                                    token: 'Bearer ' + token
+                                {expiresIn: 3600}, (err, token) => {
+                                    res.json({
+                                        success: true,
+                                        token: 'Bearer ' + token
+                                    })
                                 })
-                            } )
                         } else {
                             errors.password = 'Incorect password'
                             return res.status(400).json(errors);
                         }
                     });
-            }})
+            }
+        })
 });
 
 router.post('/registration', function (req, res) {
     const {errors, isValid} = validateRegisterInput(req.body);
-    
-    if(!isValid){
+
+    if (!isValid) {
         return res.status(400).json(errors)
     }
 
@@ -91,13 +92,12 @@ router.post('/registration', function (req, res) {
                     bcrypt.hash(newGuest.password, salt, (err, hash) => {
                         if (err) {
                             console.error(err)
-                        }else{
+                        } else {
                             newGuest.password = hash;
                             newGuest.save()
                                 .then(guest => res.json(guest))
                                 .catch(err => console.error(err))
                         }
-
                     })
                 })
             }
