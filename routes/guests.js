@@ -12,31 +12,37 @@ const Guest = require('../models/Guest')
 router.get('/guests', function (req, res) {
     Guest.find()
         .then(guests => res.json(guests))
-        .catch(err => res.status(500).json({error: err}))
+        .catch(err => res.status(500).json({
+            error: err
+        }))
 });
 
 router.get('/current',
-    passport.authenticate('jwt', {session: false}),
+    passport.authenticate('jwt', {
+        session: false
+    }),
     (req, res) => {
-        res.json(
-            {
-                id: req.user.id,
-                email: req.user.email
-            }
-        )
+        res.json({
+            id: req.user.id,
+            email: req.user.email
+        })
     });
 
 router.post("/login", (req, res) => {
-
-    const {errors, isValid} = validateLoginInput(req.body);
+    const {
+        errors,
+        isValid
+    } = validateLoginInput(req.body);
     if (!isValid) {
         return res.status(400).json(errors)
     }
-    
+
     const email = req.body.email;
     const password = req.body.password;
-console.log(email)
-    Guest.findOne({email})
+    console.log(email)
+    Guest.findOne({
+            email
+        })
         .then(user => {
             if (!user) {
                 errors.email = 'User not found'
@@ -53,8 +59,9 @@ console.log(email)
                             ////Sign Token
                             jwt.sign(
                                 payload,
-                                keys.SecretOrKey,
-                                {expiresIn: 3600}, (err, token) => {
+                                keys.SecretOrKey, {
+                                    expiresIn: 3600
+                                }, (err, token) => {
                                     res.json({
                                         success: true,
                                         token: 'Bearer ' + token
@@ -70,85 +77,96 @@ console.log(email)
 });
 
 router.post('/registration', function (req, res) {
-    const {errors, isValid} = validateRegisterInput(req.body);
+    const {
+        errors,
+        isValid
+    } = validateRegisterInput(req.body);
 
     if (!isValid) {
         return res.status(400).json(errors)
     }
 
-    Guest.findOne({email: req.body.email})
+    Guest.findOne({
+            email: req.body.email
+        })
         .then(user => {
-                if (user) {
-                    errors.email = 'Email already exists'
-                    return res.status(400).json(errors)
-                }
-                const newGuest = new Guest({
-                    email: req.body.email,
-                    password: req.body.password
-                });
-
-                bcrypt.genSalt(10, (err, salt) => {
-                    bcrypt.hash(newGuest.password, salt, (err, hash) => {
-                        if (err) {
-                            console.error(err)
-                        } else {
-                            newGuest.password = hash;
-                            newGuest.save()
-                                .then(guest => res.json(guest))
-                                .catch(err => console.error(err))
-                        }
-                    })
-                })
+            if (user) {
+                errors.email = 'Email already exists'
+                return res.status(400).json(errors)
             }
-        )
+            const newGuest = new Guest({
+                email: req.body.email,
+                password: req.body.password
+            });
+
+            bcrypt.genSalt(10, (err, salt) => {
+                bcrypt.hash(newGuest.password, salt, (err, hash) => {
+                    if (err) {
+                        console.error(err)
+                    } else {
+                        newGuest.password = hash;
+                        newGuest.save()
+                            .then(guest => res.json(guest))
+                            .catch(err => console.error(err))
+                    }
+                })
+            })
+        })
 });
 
+router.post('/guests/skills', (req, res) => {
+    let {id,skillName} = req.body;
+    Guest.addNewSkillById(id, skillName)
+        .then(model => { res.json(model)})
+        .catch(err => res.json(err))
+})
 
-router.post('/guests/skills', (req,res) => {
-     Guest.addNewSkillById(req.body.id,req.body.skill)
-     .then(model => { res.json(model)})
-         .catch(err => res.json(err))
-    }
-)
+router.delete('/guests/skills', (req, res) => {
+    let {id,skillId} = req.body;
+    Guest.removeSkillById(id, skillId)
+        .then(model => res.json(model))
+        .catch(err => res.json > (err))
+})
 
-router.delete('/guests/skills',(req,res)=>{
-    Guest.removeSkillById(req.body.id,req.body.skillId)
-    .then(model => res.json(model))
-    .catch(err => res.json>(err))
-    }
-)
-
-
-
-router.patch('/guests/skills',(req,res)=>{
-        Guest.updateSkillById(req.body.id,req.body.skillId,req.body.skill)
+router.patch('/guests/skills', (req, res) => {
+    let {id,skillName,skillId} = req.body;
+    Guest.updateSkillById(id, skillId,skillName)
         .then(model => res.json(model))
         .catch(err => res.json(err))
-    }
-)
+})
 
 router.post('/guests', (req, res) => {
     Guest.create(req.body)
         .then(m => res.json(m))
-        .catch(err => res.status(500).json({error: err}))
+        .catch(err => res.status(500).json({
+            error: err
+        }))
 });
 
-router.get('/guests/:id', (req, res)=>  {
+router.get('/guests/:id', (req, res) => {
     Guest.findById(req.params.id)
         .then(m => res.json(m))
-        .catch(err => res.status(500).json({error: err}))
+        .catch(err => res.status(500).json({
+            error: err
+        }))
 });
 
-router.delete('/guests/:id', (req, res)=>  {
+router.delete('/guests/:id', (req, res) => {
     Guest.findByIdAndRemove(req.params.id)
         .then(m => res.status(204).json('OK'))
-        .catch(err => res.status(500).json({error: err}))
+        .catch(err => res.status(500).json({
+            error: err
+        }))
 });
 
-router.patch('/guests/:id', (req, res)=>  {
-    Guest.findByIdAndUpdate(req.params.id, req.body, {new: true})
+router.patch('/guests/:id', (req, res) => {
+    Guest.findByIdAndUpdate(req.params.id, req.body, {
+            new: true
+        })
         .then(m => res.json(m))
-        .catch(err => res.status(500).json({error: err}))
+        .catch(err => res.status(500).json({
+            error: err
+        }))
 });
 
 module.exports = router;

@@ -25,15 +25,11 @@ GuestSchema.statics.removeSkillById = function(id,skillId) {
     {new:true});
  }
 
- GuestSchema.statics.updateSkillById = function(id,skillId,newSkill) {
-console.log(id)
-console.log(skillId)
-console.log(newSkill)
-
+ GuestSchema.statics.updateSkillById = function(id,skillId,newSkillName) {
   return  Guest.findOneAndUpdate(
     {_id:id,
         'skills._id':skillId},
-        { $set: {'skills.$.name':newSkill}},
+        { $set: {'skills.$.name':newSkillName}},
         {new:true});
  }
 
